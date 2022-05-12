@@ -58,7 +58,7 @@ jobs:
           username: ${{github.actor}}
           password: ${{secrets.GITHUB_TOKEN}}
           registry: docker.pkg.github.com
-          repository: nobia/github-actions-for-packages/${{env.DOCKER_IMAGE_NAME}}
+          repository: nobia/${{github.repository}}/${{env.DOCKER_IMAGE_NAME}}
           tag_with_sha: true
 
   Deploy-to-Azure:
