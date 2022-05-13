@@ -15,5 +15,8 @@ RUN service ssh start
 EXPOSE 22222
 EXPOSE 80
 
+ADD entry.sh /
+RUN chmod +x /entry.sh
+
 # CMD ["/usr/sbin/sshd","-D"]
 # ENTRYPOINT "entry.sh"
