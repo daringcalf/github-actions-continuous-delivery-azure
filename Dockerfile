@@ -16,4 +16,4 @@ EXPOSE 22222
 EXPOSE 80
 
 # CMD ["/usr/sbin/sshd","-D"]
-ENTRYPOINT "entry.sh"
+# ENTRYPOINT "entry.sh"
