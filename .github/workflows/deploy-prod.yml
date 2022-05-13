@@ -8,6 +8,8 @@ env:
   AZURE_RESOURCE_GROUP: cd-with-actions
   AZURE_APP_PLAN: actions-ttt-deployment
   AZURE_LOCATION: '"Central US"'
+  DOCKER_IMAGE_NAME: nobia-azure-ttt
+  IMAGE_REGISTRY_URL: docker.pkg.github.com
   #################################################
   ### USER PROVIDED VALUES ARE REQUIRED BELOW   ###
   #################################################
@@ -46,19 +48,40 @@ jobs:
           name: webpack artifacts
           path: public
 
-#       - name: create image and store in Packages
-#         uses: mattdavis0351/actions/docker-gpr@1.3.0
-#         with:
-#           repo-token: ${{secrets.GITHUB_TOKEN}}
-#           image-name: ${{env.DOCKER_IMAGE_NAME}}
-      - name: create image and store in Packages
-        uses: docker/build-push-action@v2
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
         with:
+          # list of Docker images to use as base name for tags
+          images:
+            ${{env.IMAGE_REGISTRY_URL}}/${{ github.repository }}/${{env.DOCKER_IMAGE_NAME}}
+          # generate Docker tags based on the following events/attributes
+          tags:
+            type=sha
+
+      - name: Download built artifact
+        uses: actions/download-artifact@main
+        with:
+          name: webpack artifacts
+          path: public
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{env.IMAGE_REGISTRY_URL}}
           username: ${{github.actor}}
           password: ${{secrets.GITHUB_TOKEN}}
-          registry: docker.pkg.github.com
-          repository: nobia/${{github.repository}}/${{env.DOCKER_IMAGE_NAME}}
-          tag_with_sha: true
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
 
   Deploy-to-Azure:
     runs-on: ubuntu-latest
@@ -80,7 +103,7 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{env.AZURE_WEBAPP_NAME}}
-          images: ${{env.IMAGE_REGISTRY_URL}}/${{ github.repository }}/${{env.DOCKER_IMAGE_NAME}}:${{ github.sha }}
+          images: ${{ steps.meta.outputs.tags }}
 
       - name: Azure logout
         run: |
