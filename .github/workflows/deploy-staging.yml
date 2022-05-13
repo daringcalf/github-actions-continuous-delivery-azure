@@ -102,7 +102,7 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{env.AZURE_WEBAPP_NAME}}
-          images: ${{ needs.build.outputs.tag }}
+          images: ${{ needs.Build-Docker-Image.outputs.tag }}
 
       - name: Azure logout
         run: |
