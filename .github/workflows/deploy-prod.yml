@@ -10,7 +10,7 @@ env:
   AZURE_APP_PLAN: actions-ttt-deployment
   AZURE_LOCATION: '"Central US"'
   DOCKER_IMAGE_NAME: nobia-azure-ttt
-  IMAGE_REGISTRY_URL: docker.pkg.github.com
+  IMAGE_REGISTRY_URL: ghcr.io
   #################################################
   ### USER PROVIDED VALUES ARE REQUIRED BELOW   ###
   #################################################
@@ -83,6 +83,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           tags: ${{ steps.meta.outputs.tags }}
+          push: true
 
   Deploy-to-Azure:
     runs-on: ubuntu-latest

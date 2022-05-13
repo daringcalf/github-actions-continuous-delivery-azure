@@ -9,7 +9,7 @@ env:
   AZURE_APP_PLAN: actions-ttt-deployment
   AZURE_LOCATION: '"Central US"'
   DOCKER_IMAGE_NAME: nobia-azure-ttt
-  IMAGE_REGISTRY_URL: docker.pkg.github.com
+  IMAGE_REGISTRY_URL: ghcr.io
   #################################################
   ### USER PROVIDED VALUES ARE REQUIRED BELOW   ###
   #################################################
@@ -40,6 +40,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     name: Build image and store in GitHub Packages
+    outputs:
+      tag: ${{ steps.meta.outputs.tags }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -61,12 +63,6 @@ jobs:
           tags:
             type=sha
 
-      - name: Download built artifact
-        uses: actions/download-artifact@main
-        with:
-          name: webpack artifacts
-          path: public
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
@@ -84,6 +80,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           tags: ${{ steps.meta.outputs.tags }}
+          push: true
 
   Deploy-to-Azure:
     runs-on: ubuntu-latest
@@ -105,7 +102,7 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{env.AZURE_WEBAPP_NAME}}
-          images: ${{ steps.meta.outputs.tags }}
+          images: ${{ needs.Build-Docker-Image.outputs.tag }}
 
       - name: Azure logout
         run: |
